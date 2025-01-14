@@ -22,10 +22,11 @@ export const app = new Frog({
 // Define the player object
 let player = {
   name: 'player',
-  life: 60,
-  points: 3,
+  life: 2,
+  points: 4,
   lastInput: "a1",
-
+  defPow: 7,
+  atkPow: 9,
 
  
 };
@@ -36,7 +37,10 @@ let enemy1 = {
   life: 100,
 };
 
+let enemyList = [
+  { id: '1', name: 'skullKnight1', idle: 0 , attack: 1, hit: 2, life: 100, atkPow: 5, defPow: 3 },
 
+];
 
 type FarcasterID = string;
 type playerScore = number;
@@ -58,15 +62,29 @@ const validFrames: string[] = ['a1', 'a2', 'a3', 'i1', 'i2', 'i3', 'm1', 'm2', '
 
 // Array of image URLs with aspect ratio 1.22:1
 const images = [
-  { id: '1', url: '/bgs/empty.jpg' },
-  { id: '2', url: '/bgs/complete3.jpg' },
+  { id: '1', url: '/bgs/empty2.jpg' },
+  { id: '2', url: '/bgs/complete.jpg' },
   { id: '3', url: '/bgs/wrongInput.jpg' },
   { id: '4', url: '/bgs/icon.png' },
   { id: '5', url: '/bgs/ambushed.jpg' },
+  { id: '6', url: '/bgs/bgforest.jpg' },
+  { id: '7', url: '/characters/playeridle2.png' },
+  { id: '8', url: '/characters/bear.png' },
+  { id: '9', url: '/characters/playerhit.png' },
+  { id: '10', url: '/characters/playerblock.png' },
+  { id: '11', url: '/characters/playerattack1.png' },
+  { id: '12', url: '/characters/playerattack2.png' },
 
 ];
 
+const enemyImages = [
+  { id: '1', url: '/enemies/enemy1idle.png' },
+  { id: '2', url: '/enemies/enemy1attack.png' },
+  { id: '3', url: '/enemies/enemy1hit.png' },
+  { id: '4', url: '/images/dead.png' },
 
+
+];
 
 
 const validGrid = [
@@ -196,10 +214,23 @@ app.frame('/', (c) => {
     let image;
     let intents;
 
-    image = '/1.jpg',
-    intents = [     
-      <Button action="/selectCo-ordinates">Enter Maison</Button>,
-    ];
+    image = '/1.jpg';
+
+    if (player.life > 0) {
+
+      intents = [     
+        <Button action="/intro1">Enter Maison</Button>,
+      ];
+
+    } else {
+      // player is dead
+
+      intents = [     
+        <Button action="/deadIntro">Enter Maison</Button>,
+      ];
+
+    }
+
   return c.res({
     
     image: image,
@@ -208,14 +239,14 @@ app.frame('/', (c) => {
 });
 
 
-app.frame('/selectCharacter', (c) => {
+app.frame('/intro1', (c) => {
     let image;
     let intents;
 
-    image = '/characters/charSelect.jpg',
+    image = '/cutscenes/intro1.jpg',
 
-    intents = [   
-      <Button action="/selectArmor">Ayla</Button>,
+    intents = [
+    <Button action="/intro2">Praise Be</Button>,
     ];
   return c.res({
     
@@ -224,8 +255,70 @@ app.frame('/selectCharacter', (c) => {
   })
 });
 
+app.frame('/intro2', (c) => {
+    let image;
+    let intents;
 
+    image = '/cutscenes/intro2.jpg',
 
+    intents = [
+    <Button action="/intro3">Continue</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
+
+app.frame('/intro3', (c) => {
+    let image;
+    let intents;
+
+    image = '/cutscenes/intro3.jpg',
+
+    intents = [
+    <Button action="/intro4">We Will!</Button>,
+    <Button action="/intro5">The Order is dead</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
+
+app.frame('/intro4', (c) => {
+    let image;
+    let intents;
+
+    image = '/cutscenes/intro4.jpg',
+
+    intents = [
+    <Button action="/selectCo-ordinates">Continue</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
+
+app.frame('/intro5', (c) => {
+    let image;
+    let intents;
+
+    image = '/cutscenes/intro5.jpg',
+
+    intents = [
+    <Button action="/intro4">Apologies</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
 
 
 app.frame('/selectCo-ordinates', (c) => {
@@ -317,7 +410,7 @@ app.frame('/resolvePosition', async (c) => {
         // Check if the player has the item
 
         if (player.points > 0) {
-
+          player.points -= 1
             // go to selected input
             image = (
               <div
@@ -484,17 +577,18 @@ app.frame('/revealGrid', (c) => {
       image = '/cutscenes/bear.jpg';
 
       intents = [
-      <Button action="/battle">Fight</Button>,
+      <Button action="/bearFight">Fight</Button>,
       <Button action="/selectCo-ordinates">Flee !!</Button>,
       ];
 
     } else {
       //battle
 
-      image = images[2].url;
+      image = images[4].url;
       intents = [
-        <Button action="/">Back</Button>,
+        <Button action="/battle">Fight</Button>,
       ];
+      enemyList[0].life = 100;
 
     }
   return c.res({
@@ -504,9 +598,37 @@ app.frame('/revealGrid', (c) => {
   });
 });
 
+app.frame('/deadIntro', (c) => {
+    let image;
+    let intents;
 
+    image = '/cutscenes/deadintro.jpg',
 
+    intents = [
+    <Button action="/deadIntro">Game Over</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
 
+app.frame('/bearFight', (c) => {
+    let image;
+    let intents;
+    player.life = 0,
+    image = '/cutscenes/beardeath.jpg',
+
+    intents = [
+    <Button action="/">Game Over</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
 
 app.frame('/sotaFight', (c) => {
     let image;
@@ -560,8 +682,1009 @@ app.frame('/ambush', (c) => {
   })
 });
 
+app.frame('/gameOverDead', (c) => {
+    let image;
+    let intents;
+
+    image = '/bgs/deathbg.jpg',
+
+    intents = [
+    <Button action="/">Home</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
 
 
+
+app.frame('/battle', (c) => {
+    let image;
+    let intents;
+    const { buttonValue, inputText, status, frameData, verified } = c;
+    const { fid } = frameData || {};
+
+    image = (
+      <div
+        style={{
+        position: 'relative',  // Set the container to relative positioning
+        height: '100vh',
+        background: 'white',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+          }}
+        >
+          <img
+          src= {images[5].url}
+          alt="Background Image"
+          style={{
+          width: '1190px',
+          height: '626px',
+          }}
+        />
+
+
+
+        <img
+          src= {images[6].url}
+          alt="Player Image"
+          style={{
+          position: 'absolute',
+          width: '600px',
+          height: '569px',
+          top: `60%`,
+          left: `23%`,
+          transform: 'translate(-50%, -50%)',
+          }}
+        />
+
+        <img
+          src= {enemyImages[enemyList[0].idle].url}
+          alt="Enemy Image"
+          style={{
+          position: 'absolute',
+          width: '900px',
+          height: '635px',
+          top: `55%`,
+          left: `65%`,
+          transform: 'translate(-50%, -50%)',
+          }}
+        />
+          
+
+      </div>
+    );
+
+    intents = [
+
+      <Button value="light">Light Attack</Button>,
+      <Button value="heavy">Heavy Attack</Button>,
+      
+    ];
+
+  return c.res({
+    action: '/resolveAttack',
+    image: image,
+    intents: intents
+  })
+});
+
+
+
+app.frame('/resolveAttack', (c) => {
+    let image;
+    let intents;
+    
+    const { buttonValue, inputText, status, frameData, verified } = c;
+    const { fid } = frameData || {};
+
+    if (buttonValue === "heavy") {
+
+      const diceRoll = Math.floor(Math.random() * 8);
+      if (diceRoll < enemyList[0].defPow) {
+
+        //player attack missed
+        image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            <img
+              src= {images[11].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '800px',
+              height: '624px',
+              top: `50%`,
+              left: `43%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {enemyImages[enemyList[0].idle].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `70%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `25%`,
+                    left: `20%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Miss!!"}
+            </p>
+              
+
+          </div>
+        );
+
+
+
+      } else {
+
+        //player attack successful
+        image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            
+
+            <img
+              src= {enemyImages[enemyList[0].hit].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `55%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {images[11].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '800px',
+              height: '624px',
+              top: `50%`,
+              left: `43%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `25%`,
+                    left: `70%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Hit!"}
+            </p>              
+
+          </div>
+        );
+        enemyList[0].life -= 25;
+        console.log(enemyList[0].life)
+
+      }
+
+
+    } else if (buttonValue === "light") {
+
+      const diceRoll = Math.floor(Math.random() * 13);
+      if (diceRoll < enemyList[0].defPow) {
+
+        //player attack missed
+        image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            <img
+              src= {images[11].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '800px',
+              height: '624px',
+              top: `50%`,
+              left: `43%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {enemyImages[enemyList[0].idle].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `70%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `25%`,
+                    left: `70%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Miss!!"}
+            </p>
+              
+
+          </div>
+        );
+
+
+
+      } else {
+
+        //player attack successful
+        image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            
+
+            <img
+              src= {enemyImages[enemyList[0].hit].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `55%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {images[11].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '800px',
+              height: '624px',
+              top: `50%`,
+              left: `43%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `25%`,
+                    left: `70%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Hit!"}
+            </p>              
+
+          </div>
+        );
+        enemyList[0].life -= 15;
+        console.log(enemyList[0].life)
+
+      }
+
+
+    } else if (buttonValue === "playerKilled") {
+      // player is dead
+    image = '/bgs/deathbg.jpg',
+
+    intents = [
+      <Button action="/">Continue</Button>,
+    ];
+      
+    } else {
+
+      const diceRoll = Math.floor(Math.random() * 10);
+      if (diceRoll < enemyList[0].defPow) {
+
+        //player attack missed
+        image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            <img
+              src= {images[11].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '800px',
+              height: '624px',
+              top: `50%`,
+              left: `43%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {enemyImages[enemyList[0].idle].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `70%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `25%`,
+                    left: `70%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Miss!!"}
+            </p>
+              
+
+          </div>
+        );
+
+
+
+      } else {
+
+        //player attack successful
+        image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            
+
+            <img
+              src= {enemyImages[enemyList[0].hit].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `55%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {images[11].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '800px',
+              height: '624px',
+              top: `50%`,
+              left: `43%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `25%`,
+                    left: `70%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Hit!"}
+            </p>              
+
+          </div>
+        );
+        enemyList[0].life -= 5;
+        console.log(enemyList[0].life)
+
+      }
+
+    }
+
+    if (player.life < 1) {
+      //player is dead
+
+      intents = [
+        <Button action="/gameOverDead">Gamover</Button>,
+      ];
+
+      
+
+    }else if (enemyList[0].life < 1) {
+      //enemy is dead
+
+      intents = [
+        <Button value="kill">Execute!</Button>,
+      ];
+
+    } else {
+
+      intents = [
+
+       
+        <Button value="dodge">Dodge</Button>,
+        
+      ];
+
+    }
+
+
+  return c.res({
+
+    action: '/resolveDefense',
+    image: image,
+    intents: intents
+  })
+});
+
+
+
+app.frame('/resolveDefense', (c) => {
+    let image;
+    let intents;
+    const { buttonValue, inputText, status, frameData, verified } = c;
+    const { fid } = frameData || {};
+
+    
+  if (buttonValue === "kill") {
+    //kill enemy
+    
+        image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+            <img
+              src= {enemyImages[enemyList[0].hit].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `60%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {images[10].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '1000px',
+              height: '742px',
+              top: `42%`,
+              left: `45%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {enemyImages[3].url}
+              alt="dead Icon"
+              style={{
+              position: 'absolute',
+              width: '250px',
+              height: '158px',
+              top: `49%`,
+              left: `77%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+            
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `10%`,
+                    left: `70%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Eliminated!!"}
+            </p>
+              
+
+          </div>
+        );
+
+    intents = [
+    // enemy is killed, player continues journey cutscene
+      <Button action="/victoryScene">Continue</Button>,
+    ];
+  
+  } else if (buttonValue === "dodge") {
+
+    const totalStat = player.defPow + enemyList[0].atkPow;
+    const dodgeDiceRoll = Math.floor(Math.random() * totalStat);
+
+    if (dodgeDiceRoll < enemyList[0].atkPow ) {
+      // unsuccessful dodge
+
+      image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            <img
+              src= {images[8].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '1000px',
+              height: '742px',
+              top: `42%`,
+              left: `40%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {enemyImages[enemyList[0].attack].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `65%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `20%`,
+                    left: `20%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Hit!!"}
+            </p>
+              
+
+          </div>
+        );
+
+      player.life -= 15;
+
+      if (player.life < 1) {
+        //player is dead
+
+        intents = [
+          <Button 
+          action="/gameOverDead"
+          value="playerKilled"
+          >
+           Continue
+          </Button>,
+        ];
+      
+
+        } else {
+
+          intents = [
+           
+            <Button value="light">Light Attack</Button>,
+            <Button value="heavy">Heavy Attack!</Button>,
+          ];
+
+        }
+
+    } else  {
+      // successful dodge
+      image = (
+          <div
+            style={{
+            position: 'relative',  // Set the container to relative positioning
+            height: '100vh',
+            background: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+              }}
+            >
+            <img
+              src= {images[5].url}
+              alt="Background Image"
+              style={{
+              width: '1190px',
+              height: '626px',
+              }}
+            />
+
+
+            <img
+              src= {images[9].url}
+              alt="Player Image"
+              style={{
+              position: 'absolute',
+              width: '1000px',
+              height: '742px',
+              top: `42%`,
+              left: `25%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <img
+              src= {enemyImages[enemyList[0].attack].url}
+              alt="Enemy Image"
+              style={{
+              position: 'absolute',
+              width: '900px',
+              height: '635px',
+              top: `55%`,
+              left: `62%`,
+              transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            <p
+                style={{
+                    position: 'absolute',
+                    fontSize: '60px',
+                    margin: '0',
+                    color: 'red',
+                    top: `20%`,
+                    left: `20%`,
+                    transform: 'translateX(-50%)',  // Center text horizontally
+                }}
+            >
+                {"Miss!!"}
+            </p>
+              
+
+          </div>
+        );
+
+      intents = [
+           
+            <Button value="light">Light Attack</Button>,
+            <Button value="heavy">Heavy Attack!</Button>,
+      ];
+
+    }
+
+
+  } else if (buttonValue === "counter") {
+
+  } else {
+
+  }
+
+
+  return c.res({
+    action: '/resolveAttack',    
+    image: image,
+    intents: intents
+  })
+});
+
+
+
+app.frame('/victoryScene', (c) => {
+    let image;
+    let intents;
+
+    image = '/bgs/victorybg.jpg',
+    intents = [     
+      <Button action="/selectCo-ordinates">Continue Exploring</Button>,
+    ];
+
+  return c.res({
+    image: image,
+    intents: intents
+  })
+});
+
+
+
+/////////////////////////////////////////////////////////////////
+
+app.frame('/battleBear', (c) => {
+    let image;
+    let intents;
+
+    image = (
+      <div
+        style={{
+        position: 'relative',  // Set the container to relative positioning
+        height: '100vh',
+        background: 'white',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+          }}
+        >
+          <img
+          src= {images[5].url}
+          alt="Background Image"
+          style={{
+          width: '1190px',
+          height: '626px',
+          }}
+        />
+
+
+
+        <img
+          src= {images[6].url}
+          alt="Player Image"
+          style={{
+          position: 'absolute',
+          width: '600px',
+          height: '569px',
+          top: `60%`,
+          left: `23%`,
+          transform: 'translate(-50%, -50%)',
+          }}
+        />
+
+        <img
+          src= {images[7].url}
+          alt="Enemy Image"
+          style={{
+          position: 'absolute',
+          width: '1200px',
+          height: '840px',
+          top: `80%`,
+          left: `80%`,
+          transform: 'translate(-50%, -50%)',
+          }}
+        />
+          
+
+      </div>
+    );
+
+    intents = [
+      <Button action="/revealGrid">Light Attack</Button>,
+      <Button action="/revealGrid">Heavy Attack</Button>,
+    ];
+
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
+
+
+
+
+//player idle template
+       /* <img
+          src= {images[6].url}
+          alt="Second Image"
+          style={{
+          position: 'absolute',
+          width: '600px',
+          height: '569px',
+          top: `60%`,
+          left: `23%`,
+          transform: 'translate(-50%, -50%)',
+          }}
+        />
+
+
+--new player frame size
+        <img
+          src= {images[10].url}
+          alt="Second Image"
+          style={{
+          position: 'absolute',
+          width: '800px',
+          height: '624px',
+          top: `50%`,
+          left: `33%`,
+          transform: 'translate(-50%, -50%)',
+          }}
+        />
+
+        <img
+          src= {images[11].url}
+          alt="Player Image"
+          style={{
+          position: 'absolute',
+          width: '800px',
+          height: '624px',
+          top: `50%`,
+          left: `33%`,
+          transform: 'translate(-50%, -50%)',
+          }}
+        />
+
+        */
 
 // @ts-ignore
 const isEdgeFunction = typeof EdgeFunction !== 'undefined'
