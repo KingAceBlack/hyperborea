@@ -22,7 +22,7 @@ export const app = new Frog({
 // Define the player object
 let player = {
   name: 'player',
-  life: 2,
+  life: 120,
   points: 4,
   lastInput: "a1",
   defPow: 7,
@@ -38,7 +38,7 @@ let enemy1 = {
 };
 
 let enemyList = [
-  { id: '1', name: 'skullKnight1', idle: 0 , attack: 1, hit: 2, life: 100, atkPow: 5, defPow: 3 },
+  { id: '1', name: 'skullKnight1', idle: 0 , attack: 1, hit: 2, life: 80, atkPow: 5, defPow: 3 },
 
 ];
 
@@ -259,7 +259,7 @@ app.frame('/intro2', (c) => {
     let image;
     let intents;
 
-    image = '/cutscenes/intro2.jpg',
+    image = '/cutscenes/intro2-.jpg',
 
     intents = [
     <Button action="/intro3">Continue</Button>,
@@ -295,7 +295,7 @@ app.frame('/intro4', (c) => {
     image = '/cutscenes/intro4.jpg',
 
     intents = [
-    <Button action="/selectCo-ordinates">Continue</Button>,
+    <Button action="/showWorld">Explore</Button>,
     ];
   return c.res({
     
@@ -312,6 +312,22 @@ app.frame('/intro5', (c) => {
 
     intents = [
     <Button action="/intro4">Apologies</Button>,
+    ];
+  return c.res({
+    
+    image: image,
+    intents: intents
+  })
+});
+
+app.frame('/showWorld', (c) => {
+    let image;
+    let intents;
+
+    image = '/bgs/exploreintro.jpg',
+
+    intents = [
+    <Button action="/selectCo-ordinates">Continue</Button>,
     ];
   return c.res({
     
@@ -377,18 +393,10 @@ app.frame('/resolvePosition', async (c) => {
     // Create an array of valid IDs in lowercase
     const validMapGrid = validGrid.map(item => item.id.toLowerCase());
 
-    // Convert inputText to lowercase
-    const lowerCaseInputText = inputText.toLowerCase();
-    player.lastInput = lowerCaseInputText;
-
-    // Find the matching grid item, using lowercase for comparison
-    const selectedItem = validGrid.find(item => item.id.toLowerCase() === lowerCaseInputText);
+   
 
 
-    // If selectedItem exists, log its xPos and yPos
-    if (selectedItem) {
-        console.log(`xPos: ${selectedItem.xPos}, yPos: ${selectedItem.yPos}`);
-    }
+
     // Check if inputText exists, else set default error image
     if (!inputText) {
         image = images[2].url; // Set an error image or fallback
@@ -402,118 +410,139 @@ app.frame('/resolvePosition', async (c) => {
             image: image,
             intents: intents
         });
+
+    } else {
+       // Convert inputText to lowercase
+      const lowerCaseInputText = inputText.toLowerCase();
+      player.lastInput = lowerCaseInputText;
+
+      // Find the matching grid item, using lowercase for comparison
+      const selectedItem = validGrid.find(item => item.id.toLowerCase() === lowerCaseInputText);
+
+        if (selectedItem) {
+          console.log(`xPos: ${selectedItem.xPos}, yPos: ${selectedItem.yPos}`);
+        }
+
+      if (validMapGrid.includes(lowerCaseInputText)) {
+          // Check if the player has the item
+
+          if (player.points > 0) {
+            player.points -= 1
+              // go to selected input
+              image = (
+                <div
+                    style={{
+                        position: 'relative',  // Set the container to relative positioning
+                        height: '100vh',
+                        background: 'white',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <img
+                        src= {images[0].url}
+                        alt="First Image"
+                        style={{
+                            width: '1190px',
+                            height: '626px',
+                        }}
+                    />
+
+                    <img
+                        src= {images[3].url}
+                        alt="Second Image"
+                        style={{
+                          position: 'absolute',
+                          width: '55px',
+                          height: '55px',
+                          top: `${selectedItem.yPos}%`,
+                          left: `${selectedItem.xPos}%`,
+                          transform: 'translate(-50%, -50%)',
+                          }}
+                      />
+                    
+                  </div>
+              );
+
+              intents = [
+                <Button action="/revealGrid">Reveal</Button>,
+              ];
+
+          } else {
+
+              // no points remaining, wait for 24 hrs or buys some with moxie/degen
+              image = '/bgs/noenergy.jpg',
+              intents = [
+                <Button action="/selectCo-ordinates">Back</Button>,
+              ];
+          }
+
+      } else if (lowerCaseInputText === "sota") {
+
+           // go to selected input
+              image = (
+                <div
+                    style={{
+                        position: 'relative',  // Set the container to relative positioning
+                        height: '100vh',
+                        background: 'white',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <img
+                        src= {images[0].url}
+                        alt="First Image"
+                        style={{
+                            width: '1190px',
+                            height: '626px',
+                        }}
+                    />
+
+                    <img
+                        src= {images[3].url}
+                        alt="Second Image"
+                        style={{
+                          position: 'absolute',
+                          width: '55px',
+                          height: '55px',
+                          top: `29%`,
+                          left: `23%`,
+                          transform: 'translate(-50%, -50%)',
+                          }}
+                      />
+                    
+                  </div>
+              );
+
+              intents = [
+                <Button action="/revealGrid">Reveal</Button>,
+              ];
+
+
+          } else {
+
+              // If inputText is not in validInventoryFrames, set an error image or response
+              image = images[2].url;
+              console.log('Invalid input!');
+              intents = [
+                <Button action="/selectCo-ordinates">Back</Button>,
+              ];
+          }
+
+
+
+
+
+
     }
+
+    // If selectedItem exists, log its xPos and yPos
 
 
     // Check if the input is valid
-    if (validMapGrid.includes(lowerCaseInputText)) {
-        // Check if the player has the item
-
-        if (player.points > 0) {
-          player.points -= 1
-            // go to selected input
-            image = (
-              <div
-                  style={{
-                      position: 'relative',  // Set the container to relative positioning
-                      height: '100vh',
-                      background: 'white',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                  }}
-              >
-                  <img
-                      src= {images[0].url}
-                      alt="First Image"
-                      style={{
-                          width: '1190px',
-                          height: '626px',
-                      }}
-                  />
-
-                  <img
-                      src= {images[3].url}
-                      alt="Second Image"
-                      style={{
-                        position: 'absolute',
-                        width: '55px',
-                        height: '55px',
-                        top: `${selectedItem.yPos}%`,
-                        left: `${selectedItem.xPos}%`,
-                        transform: 'translate(-50%, -50%)',
-                        }}
-                    />
-                  
-                </div>
-            );
-
-            intents = [
-              <Button action="/revealGrid">Reveal</Button>,
-            ];
-
-        } else {
-
-            // no points remaining, wait for 24 hrs or buys some with moxie/degen
-            image = images[2].url;
-            intents = [
-              <Button action="/">Back</Button>,
-            ];
-        }
-
-    } else if (lowerCaseInputText === "sota") {
-
-         // go to selected input
-            image = (
-              <div
-                  style={{
-                      position: 'relative',  // Set the container to relative positioning
-                      height: '100vh',
-                      background: 'white',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                  }}
-              >
-                  <img
-                      src= {images[0].url}
-                      alt="First Image"
-                      style={{
-                          width: '1190px',
-                          height: '626px',
-                      }}
-                  />
-
-                  <img
-                      src= {images[3].url}
-                      alt="Second Image"
-                      style={{
-                        position: 'absolute',
-                        width: '55px',
-                        height: '55px',
-                        top: `29%`,
-                        left: `23%`,
-                        transform: 'translate(-50%, -50%)',
-                        }}
-                    />
-                  
-                </div>
-            );
-
-            intents = [
-              <Button action="/revealGrid">Reveal</Button>,
-            ];
-
-
-    } else {
-
-        // If inputText is not in validInventoryFrames, set an error image or response
-        image = images[2].url;
-        console.log('Invalid input!');
-        intents = [
-          <Button action="/selectCo-ordinates">Back</Button>,
-        ];
-    }
 
 
 
